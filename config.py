@@ -1,10 +1,10 @@
 data_cfg = {
     "data_dir": "/home/ngoc/data/WSDM2023/",
-    "batch_size":32,
+    "batch_size":16,
     "embeded_size": 1024,
     "word_embeded_size": 300,
     "max_question_length": 50,
-    "image_size": (224,224),
+    "image_size": (512,512),
     "test_running": False
 }
 

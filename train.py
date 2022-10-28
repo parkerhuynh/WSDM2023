@@ -58,7 +58,7 @@ def train(model, train_loader, val_loader, device):
             progress_bar(i, train_step_size-1, "train", bar_length=30)
             train_images = train_batch_sample['image'].to(device)
             train_questions = train_batch_sample['question'].to(device)
-            train_labels = train_batch_sample['bounding_box'].to(device)
+            #train_labels = train_batch_sample['bounding_box'].to(device)
             
             optimizer.zero_grad()
             with torch.set_grad_enabled(True):
@@ -66,10 +66,10 @@ def train(model, train_loader, val_loader, device):
                 
 
                 train_actual_labels = train_batch_sample['actual_bounding_box'][:,2:].to(device)
-                train_image_shapes = train_batch_sample['actual_bounding_box'][:,:2]
-                train_actual_outputs = torch.Tensor(bb_processing.get_bb_predictions(train_outputs, train_image_shapes)).to(device) ###
-                loss =  loss_function(train_labels, train_outputs)
-                train_iou = IOU(train_actual_labels, train_actual_outputs)
+                #train_image_shapes = train_batch_sample['actual_bounding_box'][:,:2]
+                #train_actual_outputs = torch.Tensor(bb_processing.get_bb_predictions(train_outputs, train_image_shapes)).to(device) ###
+                loss =  loss_function(train_actual_labels, train_outputs) #
+                train_iou = IOU(train_actual_labels, train_outputs) #
                 loss.backward()
                 optimizer.step()
                 train_running_loss += loss.item()
@@ -108,10 +108,10 @@ def train(model, train_loader, val_loader, device):
                 val_outputs = model(val_images, val_questions)
 
                 val_actual_labels = val_batch_sample['actual_bounding_box'][:,2:].to(device)
-                val_image_shapes = val_batch_sample['actual_bounding_box'][:,:2]
-                val_actual_outputs = torch.Tensor(bb_processing.get_bb_predictions(val_outputs, val_image_shapes)).to(device)
-                val_loss =  loss_function(val_labels,  val_outputs)
-                val_iou = IOU(val_actual_labels, val_actual_outputs)
+                #val_image_shapes = val_batch_sample['actual_bounding_box'][:,:2] #
+                #val_actual_outputs = torch.Tensor(bb_processing.get_bb_predictions(val_outputs, val_image_shapes)).to(device) #
+                val_loss =  loss_function(val_actual_labels,  val_outputs)
+                val_iou = IOU(val_actual_labels, val_outputs)
                 val_running_loss += val_loss.item()
                 val_running_iou += val_iou
                 val_iter += 1
@@ -133,7 +133,7 @@ def train(model, train_loader, val_loader, device):
             for id in indexes:
                 image_path = val_image_paths[id]
                 actual_label = val_actual_labels[id]
-                actual_output = val_actual_outputs[id]
+                actual_output = val_outputs[id]
                 question_text = val_question_texts[id] 
                 image_predict = draw_prediction(image_path, actual_label, actual_output)
                 

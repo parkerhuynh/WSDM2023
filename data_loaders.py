@@ -6,8 +6,7 @@ import torch.utils.data as data
 from PIL import Image
 import torchvision.transforms as transforms
 from utils import make_vocab_questions, tokenize, Text_Dict, bb_processing
-
-
+from config import data_cfg
 
 
 def vqa_processing(df, phase):
@@ -70,7 +69,7 @@ def data_loaders(data_dir, max_question_length,batch_size, image_size, test_runn
     
     """Pytorch Data Loader"""
 
-    train = pd.read_csv(data_dir + 'train_224.csv')
+    train = pd.read_csv(data_dir + f'train_{data_cfg["image_size"][0]}.csv')
     #train.image  = train.image.apply(lambda x: data_dir + 'train_imgs/' + str(x.split("/")[-1]))
     #df_test = pd.read_csv(data_dir + 'test_public.csv')
     #df_test.image  = df_test.image.apply(lambda x: data_dir + 'test_imgs/' + str(x.split("/")[-1]))
