@@ -174,7 +174,7 @@ def convert_examples_to_features(examples, seq_length, tokenizer):
     return features
 
 class WSDMDataset(data.Dataset):
-    def __init__(self, dataset, phase, img_size, max_query_len = 40, transform = None, augment = False, bert_model = 'bert-base-uncased'):
+    def __init__(self, dataset, phase, img_size, max_query_len = 40, transform = False, augment = False, bert_model = 'bert-base-uncased'):
         super().__init__()
         self.dataset = dataset
         self.phase = phase
@@ -183,6 +183,7 @@ class WSDMDataset(data.Dataset):
         self.bert_model = bert_model
         self.tokenizer = BertTokenizer.from_pretrained(bert_model, do_lower_case=True)
         self.transform = transform
+        self.augment = augment
     def __len__(self):
         return len(self.dataset)
     
@@ -192,19 +193,21 @@ class WSDMDataset(data.Dataset):
         img_path = self.dataset[idx]['img_path']
         img = cv2.imread(img_path)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        h, w =  img.shape[0], img.shape[1]
         mask = np.zeros_like(img)
+        bbox = list(self.dataset[idx]['bb'][2:])
+        print(self.dataset[idx])
+        question = self.dataset[idx]['question']
+
         img, mask, ratio, dw, dh = letterbox(img, mask, self.img_size[0])
+        bbox[0], bbox[2] = bbox[0]*ratio+dw, bbox[2]*ratio+dw
+        bbox[1], bbox[3] = bbox[1]*ratio+dh, bbox[3]*ratio+dh
 
         if self.transform:
             img = self.transform(img)
         
-        #Bounding Box processing
-        bbox = self.dataset[idx]['bb'][2:] #[x_min, y_min, x_max, y_max]
-        bbox[0], bbox[2] = bbox[0]*ratio+dw, bbox[2]*ratio+dw
-        bbox[1], bbox[3] = bbox[1]*ratio+dh, bbox[3]*ratio+dh
-
         #Question processing
-        question = self.dataset[idx]['question']
+        
         examples = read_examples(question, idx)
         features = convert_examples_to_features(
                 examples=examples, seq_length=self.max_query_len, tokenizer=self.tokenizer)
@@ -219,12 +222,11 @@ def data_loaders(data_dir, batch_size, img_size, input_transform,  max_query_len
     train = pd.read_csv(data_dir + 'train.csv')
     df_test = pd.read_csv(data_dir + 'test_public.csv')[:100]
     train_length = int(len(train)*0.8)
-    df_train = train[:train_length]
-    df_valid = train[train_length:]
+    df_train = train[:train_length][2:4]
+    df_valid = train[train_length:][2:4]
     
     df_train = processing(df_train, 'train')
     df_valid = processing(df_valid, 'val')
-    df_test = processing(df_test, 'test')
 
     train_dataset = WSDMDataset(
         df_train, 'train',
@@ -234,7 +236,7 @@ def data_loaders(data_dir, batch_size, img_size, input_transform,  max_query_len
         max_query_len = max_query_len,
         )
     valid_dataset = WSDMDataset(
-        df_train, 'val',
+        df_train, 'valid',
         img_size = img_size,
         transform = input_transform,
         bert_model = bert_model,
@@ -244,12 +246,9 @@ def data_loaders(data_dir, batch_size, img_size, input_transform,  max_query_len
 
     train_loader = torch.utils.data.DataLoader(
             dataset=valid_dataset,
-            batch_size = batch_size,
-            shuffle=True)
+            batch_size = batch_size)
     valid_loader = torch.utils.data.DataLoader(
-            dataset=train_dataset,
-            batch_size = batch_size,
-            shuffle=True)
+            dataset=train_dataset,)
     return {
         'train': train_loader,
         'valid': valid_loader

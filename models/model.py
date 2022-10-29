@@ -110,6 +110,5 @@ class TransVG(nn.Module):
 
         ## Prediction Head
         outbox = self.Prediction_Head(x)  # (x; y;w; h)
-        outbox = outbox.sigmoid()*2.-0.5
-
+        outbox = outbox.sigmoid()
         return outbox

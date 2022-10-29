@@ -48,10 +48,10 @@ def main():
         description='Dataloader test')
     parser.add_argument('--gpu', default='0,1', help='gpu id')
     parser.add_argument('--workers', default=8, type=int, help='num workers for data loading')
-    parser.add_argument('--nb_epoch', default=50, type=int, help='training epoch')
+    parser.add_argument('--nb_epoch', default=256, type=int, help='training epoch')
     parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
     parser.add_argument('--lr_dec', default=0.1, type=float, help='decline of learning rate')
-    parser.add_argument('--batch_size', default=1, type=int, help='batch size')
+    parser.add_argument('--batch_size', default=2, type=int, help='batch size')
     parser.add_argument('--size', default=640, type=int, help='image size')
     parser.add_argument('--data_root', type=str, default='/home/ngoc/data/WSDM2023/',
                         help='path to dataset splits data folder')
@@ -199,6 +199,7 @@ def main():
 
     
 def train_epoch(train_loader, model, optimizer, epoch, train_iter):
+    print("#"*200)
     losses = AverageMeter()
     l1_losses = AverageMeter()
     GIoU_losses = AverageMeter()
@@ -224,8 +225,11 @@ def train_epoch(train_loader, model, optimizer, epoch, train_iter):
         word_mask = Variable(word_mask)
         gt_bbox = Variable(gt_bbox)
         gt_bbox = torch.clamp(gt_bbox,min=0,max=args.size-1)
+
         optimizer.zero_grad()
         pred_bbox = model(image, masks, word_id, word_mask)
+        print('prediction box')
+        print(pred_bbox)
         
         
         loss = 0.
@@ -309,6 +313,8 @@ def validate_epoch(val_loader, model, epoch, wandb_table):
         bbox = Variable(bbox)
         bbox = torch.clamp(bbox,min=0,max=args.size-1)
 
+        
+
         with torch.no_grad():
             pred_bbox = model(image, masks, word_id, word_mask)
 
@@ -318,7 +324,7 @@ def validate_epoch(val_loader, model, epoch, wandb_table):
         loss += GIoU_loss
         gt_bbox_ = xyxy2xywh(gt_bbox)
         l1_loss = Reg_Loss(pred_bbox, gt_bbox_/(args.size-1))
-        loss  += l1_loss
+        #loss  += l1_loss
         losses.update(loss.item(), imgs.size(0))
 
 

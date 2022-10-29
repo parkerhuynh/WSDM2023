@@ -7,6 +7,7 @@ def Reg_Loss(output, target):
     # target是(x1,y1,x2,y2)
     sm_l1_loss = torch.nn.SmoothL1Loss(reduction='mean')
     
+    
     loss_x1 = sm_l1_loss(output[:,0], target[:,0])
     loss_x2 = sm_l1_loss(output[:,1], target[:,1])
     loss_y1 = sm_l1_loss(output[:,2], target[:,2])
@@ -19,6 +20,8 @@ def GIoU_Loss(boxes1, boxes2, size):
     '''
     cal GIOU of two boxes or batch boxes
     '''
+    
+    
 
     # ===========cal IOU=============#
     # cal Intersection
@@ -37,11 +40,22 @@ def GIoU_Loss(boxes1, boxes2, size):
     inter = inter[:, 0] * inter[:, 1]
     # 分别计算boxes1和boxes2的像素面积
     boxes1Area = ((boxes1[:, 2] - boxes1[:, 0]) * (boxes1[:, 3] - boxes1[:, 1]))
+    print(f'prediction \n {boxes1}')
+    print(f'Prediction Area {boxes1Area}')
+
+    #print('\n')
     boxes2Area = ((boxes2[:, 2] - boxes2[:, 0]) * (boxes2[:, 3] - boxes2[:, 1]))
+    print(f'target \n {boxes2}')
+    print(f'Tartget Area {boxes2Area}')
+    #print('\n')
 
     union_area = boxes1Area + boxes2Area - inter + 1e-7
     ious = inter / union_area
-
+    print(f'inter {inter}')
+    print(f'union {union_area}')
+    print(f'ious {ious}')
+    print("#"*200)
+    print("#"*200)
     # ===========cal enclose area for GIOU=============#
     enclose_left_up = torch.min(boxes1[:, :2], boxes2[:, :2])
     enclose_right_down = torch.max(boxes1[:, 2:], boxes2[:, 2:])
@@ -54,4 +68,4 @@ def GIoU_Loss(boxes1, boxes2, size):
     # GIOU Loss
     giou_loss = ((1-gious).sum())/bs
 
-    return giou_loss
+    return ((1-ious).sum())/bs
