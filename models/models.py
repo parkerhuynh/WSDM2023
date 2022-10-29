@@ -29,5 +29,6 @@ class SANModel(nn.Module):
         u = question_feature
         for att_layer in self.san:
             u = att_layer(vi, u)
-        output = self.mlp(u) 
+        output = self.mlp(u)
+        outbox = output.sigmoid()
         return  output
