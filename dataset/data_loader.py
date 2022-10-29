@@ -71,7 +71,7 @@ def processing(df, phase):
             dic["img_path"] = img_path
             dic["bb"] = np.array([W, H,l,t,r,b], dtype=float)
         else:
-            image_path = '/home/ngoc/data/WSDM2023/test_imgs/' + img_path.split('/')[-1]
+            img_path = '/home/ngoc/data/WSDM2023/test_imgs/' + img_path.split('/')[-1]
             dic["img_path"] = img_path
         data.append(dic)
         
@@ -171,7 +171,7 @@ def convert_examples_to_features(examples, seq_length, tokenizer):
                 input_ids=input_ids,
                 input_mask=input_mask,
                 input_type_ids=input_type_ids))
-    return features
+    return features 
 
 class WSDMDataset(data.Dataset):
     def __init__(self, dataset, phase, img_size, max_query_len = 40, transform = False, augment = False, bert_model = 'bert-base-uncased'):
@@ -196,7 +196,6 @@ class WSDMDataset(data.Dataset):
         h, w =  img.shape[0], img.shape[1]
         mask = np.zeros_like(img)
         bbox = list(self.dataset[idx]['bb'][2:])
-        print(self.dataset[idx])
         question = self.dataset[idx]['question']
 
         img, mask, ratio, dw, dh = letterbox(img, mask, self.img_size[0])
@@ -220,10 +219,9 @@ class WSDMDataset(data.Dataset):
 
 def data_loaders(data_dir, batch_size, img_size, input_transform,  max_query_len, bert_model):
     train = pd.read_csv(data_dir + 'train.csv')
-    df_test = pd.read_csv(data_dir + 'test_public.csv')[:100]
     train_length = int(len(train)*0.8)
-    df_train = train[:train_length][2:4]
-    df_valid = train[train_length:][2:4]
+    df_train = train[:train_length]
+    df_valid = train[train_length:]
     
     df_train = processing(df_train, 'train')
     df_valid = processing(df_valid, 'val')
@@ -236,7 +234,7 @@ def data_loaders(data_dir, batch_size, img_size, input_transform,  max_query_len
         max_query_len = max_query_len,
         )
     valid_dataset = WSDMDataset(
-        df_train, 'valid',
+        df_valid, 'valid',
         img_size = img_size,
         transform = input_transform,
         bert_model = bert_model,
@@ -245,10 +243,10 @@ def data_loaders(data_dir, batch_size, img_size, input_transform,  max_query_len
 
 
     train_loader = torch.utils.data.DataLoader(
-            dataset=valid_dataset,
+            dataset=train_dataset,
             batch_size = batch_size)
     valid_loader = torch.utils.data.DataLoader(
-            dataset=train_dataset,)
+            dataset=valid_dataset,)
     return {
         'train': train_loader,
         'valid': valid_loader
