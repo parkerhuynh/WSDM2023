@@ -67,7 +67,7 @@ def main():
     #                     help='path to latest checkpoint (default: none)')
     parser.add_argument('--pretrain', default='', type=str, metavar='PATH',
                         help='pretrain support load state_dict that are not identical, while have no loss saved as resume')
-    parser.add_argument('--print_freq', '-p', default=1, type=int,
+    parser.add_argument('--print_freq', '-p', default=5000, type=int,
                         metavar='N', help='print frequency (default: 1e3)')
     parser.add_argument('--savename', default='TransVG_6.3', type=str, help='Name head for saved model')
     parser.add_argument('--seed', default=13, type=int, help='random seed')
@@ -183,14 +183,14 @@ def main():
 
      ## training
     train_iter = 0
-    val_min_loss = float('Inf')
+    val_max_iou = -float('Inf')
     for epoch in range(args.nb_epoch):
         adjust_learning_rate(args, optimizer, epoch)
         out_iter = train_epoch(train_loader, model, optimizer, epoch, train_iter)
         train_iter = out_iter
-        loss_new = validate_epoch(valid_loader, model,epoch, wandb_table)
-        if loss_new < val_min_loss:
-            val_min_loss = loss_new
+        iou_new = validate_epoch(valid_loader, model,epoch, wandb_table)
+        if iou_new > val_max_iou:
+            val_max_iou = iou_new
             torch.save(model, 'saved_models/model.pt')
     
     wandb.log({"Image_Table": wandb_table})
@@ -199,7 +199,6 @@ def main():
 
     
 def train_epoch(train_loader, model, optimizer, epoch, train_iter):
-    print("#"*200)
     losses = AverageMeter()
     l1_losses = AverageMeter()
     GIoU_losses = AverageMeter()
@@ -228,9 +227,6 @@ def train_epoch(train_loader, model, optimizer, epoch, train_iter):
 
         optimizer.zero_grad()
         pred_bbox = model(image, masks, word_id, word_mask)
-        print('prediction box')
-        print(pred_bbox)
-        
         
         loss = 0.
         GIoU_loss = GIoU_Loss(pred_bbox*(args.size-1), gt_bbox, args.size-1)
@@ -238,7 +234,7 @@ def train_epoch(train_loader, model, optimizer, epoch, train_iter):
 
         gt_bbox_ = xyxy2xywh(gt_bbox)
         l1_loss = Reg_Loss(pred_bbox, gt_bbox_/(args.size-1))
-        loss  += l1_loss
+        #loss  += l1_loss
         loss.backward()
         optimizer.step()
 
@@ -361,10 +357,8 @@ def validate_epoch(val_loader, model, epoch, wandb_table):
     )
     for i in range(len(pred_bbox)):
         wandb_table.add_data(epoch+1, np.array(bbox[i].to('cpu')), np.array(pred_bbox[i].to('cpu')))
-    return losses.avg
+    return miou.avg
                                                                                                    
-
-
 
 if __name__ == "__main__":
     main()
