@@ -6,6 +6,7 @@ import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 from torch.utils.data import TensorDataset, DataLoader, SequentialSampler
 #from torch.utils.data.distributed import DistributedSampler
+
 from models.detr import build_detr, build_VLFusion
 
 import argparse
@@ -79,6 +80,13 @@ class TransVG(nn.Module):
         self.vlmodel = build_VLFusion(args)
         self.vlmodel = load_weights(self.vlmodel, './saved_models/detr-r50-e632da11.pth')
         
+        checkpoint = torch.load('saved_models/TransVG_referit_model_best.pth.tar')
+        pretrained_dict = checkpoint['state_dict']
+        model_dict = self.vlmodel.state_dict()
+        pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+        model_dict.update(pretrained_dict)
+        self.vlmodel.load_state_dict(model_dict)
+        
         ## Prediction Head
         self.Prediction_Head = torch.nn.Sequential(
           nn.Linear(256, 256),
@@ -110,5 +118,6 @@ class TransVG(nn.Module):
 
         ## Prediction Head
         outbox = self.Prediction_Head(x)  # (x; y;w; h)
-        outbox = outbox.sigmoid()
+        outbox = outbox.sigmoid()*2.-0.5
+
         return outbox

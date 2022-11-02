@@ -164,14 +164,3 @@ def adjust_learning_rate(args, optimizer, epoch):
     optimizer.param_groups[1]['lr'] = lr / 10
     if len(optimizer.param_groups) > 2:
         optimizer.param_groups[2]['lr'] = lr / 10
-
-def adjust_learning_rate(args, optimizer, epoch):
-    # print(optimizer.param_groups[0]['lr'], optimizer.param_groups[1]['lr'])
-    if epoch >= 60:
-            lr = args.lr * args.lr_dec
-    else:
-        lr = args.lr
-    optimizer.param_groups[0]['lr'] = lr
-    optimizer.param_groups[1]['lr'] = lr / 10
-    if len(optimizer.param_groups) > 2:
-        optimizer.param_groups[2]['lr'] = lr / 10

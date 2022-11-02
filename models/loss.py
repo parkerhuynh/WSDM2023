@@ -7,7 +7,6 @@ def Reg_Loss(output, target):
     # target是(x1,y1,x2,y2)
     sm_l1_loss = torch.nn.SmoothL1Loss(reduction='mean')
     
-    
     loss_x1 = sm_l1_loss(output[:,0], target[:,0])
     loss_x2 = sm_l1_loss(output[:,1], target[:,1])
     loss_y1 = sm_l1_loss(output[:,2], target[:,2])
@@ -21,15 +20,16 @@ def GIoU_Loss(boxes1, boxes2, size):
     cal GIOU of two boxes or batch boxes
     '''
     
-    
-
     # ===========cal IOU=============#
     # cal Intersection
     bs = boxes1.size(0)
+    
     boxes1 = torch.cat([boxes1[:,:2]-(boxes1[:,2:]/2), boxes1[:,:2]+(boxes1[:,2:]/2)], dim=1)
     boxes1 = torch.clamp(boxes1, min=0, max=size)
+    #boxes1 = torch.tensor(boxes1, dtype=torch.int32)
     max_xy = torch.min(boxes1[:, 2:], boxes2[:, 2:])
     min_xy = torch.max(boxes1[:, :2], boxes2[:, :2])
+    
 
 
     # max_xy = torch.min(boxes1[:, 2:].unsqueeze(1).expand(bs, bs, 2),
@@ -40,12 +40,15 @@ def GIoU_Loss(boxes1, boxes2, size):
     inter = inter[:, 0] * inter[:, 1]
     # 分别计算boxes1和boxes2的像素面积
     boxes1Area = ((boxes1[:, 2] - boxes1[:, 0]) * (boxes1[:, 3] - boxes1[:, 1]))
-
-
-    #print('\n')
     boxes2Area = ((boxes2[:, 2] - boxes2[:, 0]) * (boxes2[:, 3] - boxes2[:, 1]))
-    #print('\n')
-
+    '''
+    print("prediction \n \n")
+    print(boxes1)
+    print("#"*100)
+    print("targrt \n \n")
+    print(boxes2)
+    print("#"*400)
+    '''
     union_area = boxes1Area + boxes2Area - inter + 1e-7
     ious = inter / union_area
 
@@ -61,4 +64,4 @@ def GIoU_Loss(boxes1, boxes2, size):
     # GIOU Loss
     giou_loss = ((1-gious).sum())/bs
 
-    return ((1-ious).sum())/bs
+    return giou_loss
