@@ -46,7 +46,7 @@ from utils.checkpoint import save_checkpoint, load_pretrain, load_resume
 def main():
     parser = argparse.ArgumentParser(
         description='Dataloader test')
-    parser.add_argument('--gpu', default='0,1', help='gpu id')
+    parser.add_argument('--gpu', default='0', help='gpu id')
     parser.add_argument('--workers', default=8, type=int, help='num workers for data loading')
     parser.add_argument('--nb_epoch', default=100, type=int, help='training epoch')
     parser.add_argument('--lr', default=1e-4, type=float, help='learning rate')
@@ -150,6 +150,7 @@ def main():
     ])
     
     # Dataset
+    """
     train_dataset = VGDataset(data_root=args.data_root,
                          split_root=args.split_root,
                          dataset=args.dataset,
@@ -174,12 +175,13 @@ def main():
                          imsize = args.size,
                          transform=input_transform,
                          max_query_len=args.time)
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
-                              pin_memory=True, drop_last=True)
-    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,
-                              pin_memory=True, drop_last=True)
-    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False,
-                              pin_memory=True, drop_last=True)
+    #train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
+    #                          pin_memory=True, drop_last=True)
+    #val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,
+    #                          pin_memory=True, drop_last=True)
+    #test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False,
+    #                          pin_memory=True, drop_last=True)
+    """
     WSDM_dataloaders = data_loaders(
         data_dir='/home/ngoc/data/WSDM2023/',
         batch_size=args.batch_size,
