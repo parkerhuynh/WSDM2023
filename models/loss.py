@@ -41,6 +41,8 @@ def GIoU_Loss(boxes1, boxes2, size):
     # 分别计算boxes1和boxes2的像素面积
     boxes1Area = ((boxes1[:, 2] - boxes1[:, 0]) * (boxes1[:, 3] - boxes1[:, 1]))
     boxes2Area = ((boxes2[:, 2] - boxes2[:, 0]) * (boxes2[:, 3] - boxes2[:, 1]))
+
+    print(boxes2Area)
     '''
     print("prediction \n \n")
     print(boxes1)
@@ -63,5 +65,5 @@ def GIoU_Loss(boxes1, boxes2, size):
 
     # GIOU Loss
     giou_loss = ((1-gious).sum())/bs
-
+    print(giou_loss.item())
     return giou_loss
