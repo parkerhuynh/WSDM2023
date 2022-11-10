@@ -284,9 +284,8 @@ class WSDMDataset(data.Dataset):
 def data_loaders(data_dir, batch_size, img_size, input_transform,  max_query_len, bert_model):
     train = pd.read_csv(data_dir + 'train.csv')
     train_length = int(len(train)*0.8)
-    df_train = train[:train_length][:1000]
-    df_valid = train[train_length:][:1000]
-    
+    df_train = train[:train_length]
+    df_valid = train[train_length:]    
     df_train = processing(df_train, 'train')
     df_valid = processing(df_valid, 'val')
 
